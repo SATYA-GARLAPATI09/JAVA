@@ -1630,9 +1630,30 @@
         </div>
         <div id="w-att-status" style="padding:0 18px;"></div>
         <div class="stats-grid" style="padding:0 18px 18px;" id="w-stats"></div>
-        <div style="padding:0 18px 18px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-primary" style="flex:1; min-width:180px;" onclick="selfMarkAttendance()">✋ Mark My Attendance</button>
-          <button class="btn btn-whatsapp" style="flex:1; min-width:180px;" onclick="workerShareWhatsApp()">📱 Share Receipt</button>
+        <!-- Attendance Marking Section -->
+        <div id="worker-attendance-section" style="padding:0 18px 18px; width: 100%;">
+          <div class="card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; width: 100%;">
+            <h4 class="font-head" style="font-size: 0.95rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--primary);">✋ Mark Attendance</h4>
+            
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted);">Choose Date *</label>
+              <input type="date" id="w-att-date" onchange="onWorkerAttDateChange()" style="min-height: 48px; padding: 12px; font-size: 0.95rem; background: rgba(255,255,255,0.05); border: 1.5px solid var(--border); border-radius: var(--radius-sm);">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 18px;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted);">Choose Day Type *</label>
+              <div style="display: flex; gap: 8px;">
+                <button id="w-att-type-full" class="half-toggle active" style="flex: 1; justify-content: center; height: 44px; display: flex; align-items: center; font-size: 0.88rem; border-radius: var(--radius-sm);" onclick="setWorkerAttType(false)">☀️ Full Day</button>
+                <button id="w-att-type-half" class="half-toggle" style="flex: 1; justify-content: center; height: 44px; display: flex; align-items: center; font-size: 0.88rem; border-radius: var(--radius-sm);" onclick="setWorkerAttType(true)">🌙 Half Day</button>
+              </div>
+            </div>
+            
+            <div id="w-att-status-msg" class="alert" style="display: none; margin-bottom: 12px; font-size: 0.82rem;"></div>
+            
+            <button id="w-att-submit-btn" class="btn btn-primary" style="width: 100%; min-height: 48px;" onclick="submitWorkerAttendance()">Mark My Attendance</button>
+          </div>
+          
+          <button class="btn btn-whatsapp" style="width: 100%; min-height: 48px;" onclick="workerShareWhatsApp()">📱 Share Receipt via WhatsApp</button>
         </div>
       </div>
 
@@ -1870,7 +1891,10 @@ let currentTab = 'tab-overview';
 //  HELPERS
 // ══════════════════════════════════════════
 function uid() { return '_' + Math.random().toString(36).substr(2,9) + Date.now().toString(36); }
-function todayStr() { return new Date().toISOString().split('T')[0]; }
+function todayStr() {
+  const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+  return (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+}
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -2147,7 +2171,7 @@ function renderOverview() {
             ${avatarHTML(w, 44, '14px')}
             <div class="attendance-info">
               <h4>${w?.name || 'Unknown'}</h4>
-              <p>Self-marked · ${fmtDate(a.date)}</p>
+              <p>Self-marked · ${fmtDate(a.date)} · <b>${a.halfDay ? 'Half Day' : 'Full Day'}</b></p>
             </div>
             <div class="flex gap-6">
               <button class="btn btn-success btn-xs" onclick="approveAtt('${a.id}')">✓</button>
@@ -2770,28 +2794,106 @@ function renderWorkerDash() {
     </div>
   `;
 
+  const dateInput = document.getElementById('w-att-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = todayStr();
+  }
+  onWorkerAttDateChange();
+
   renderWorkerCal();
   renderWorkerPayments();
 }
 
-function selfMarkAttendance() {
+let workerAttHalfDay = false;
+
+function setWorkerAttType(isHalf) {
+  workerAttHalfDay = isHalf;
+  const fullBtn = document.getElementById('w-att-type-full');
+  const halfBtn = document.getElementById('w-att-type-half');
+  if (isHalf) {
+    fullBtn.classList.remove('active');
+    halfBtn.classList.add('active');
+  } else {
+    fullBtn.classList.add('active');
+    halfBtn.classList.remove('active');
+  }
+}
+
+function onWorkerAttDateChange() {
   if (!currentWorker) return;
-  if (isPresentToday(currentWorker.id)) {
-    showToast('✅ Attendance already approved!');
+  const dateInput = document.getElementById('w-att-date');
+  if (!dateInput) return;
+  const selectedDate = dateInput.value;
+  const msgEl = document.getElementById('w-att-status-msg');
+  const submitBtn = document.getElementById('w-att-submit-btn');
+  if (!msgEl || !submitBtn) return;
+
+  if (!selectedDate) {
+    msgEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Choose Date First';
     return;
   }
-  if (hasPendingSelf(currentWorker.id)) {
-    showToast('⏳ Already submitted, awaiting approval.');
+
+  // Check if approved
+  const isApproved = db.attendance.some(a => a.workerId === currentWorker.id && a.date === selectedDate && a.approved);
+  // Check if pending approval
+  const isPending = db.attendance.some(a => a.workerId === currentWorker.id && a.date === selectedDate && !a.approved && a.markedBy === 'self');
+
+  if (isApproved) {
+    msgEl.textContent = '✅ Attendance already approved for this date.';
+    msgEl.className = 'alert alert-success';
+    msgEl.style.display = 'block';
+    msgEl.style.marginBottom = '12px';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Attendance Approved';
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.pointerEvents = 'none';
+  } else if (isPending) {
+    msgEl.textContent = '⏳ Attendance request pending admin approval.';
+    msgEl.className = 'alert alert-warning';
+    msgEl.style.display = 'block';
+    msgEl.style.marginBottom = '12px';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Awaiting Approval';
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.pointerEvents = 'none';
+  } else {
+    msgEl.style.display = 'none';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Mark My Attendance';
+    submitBtn.style.opacity = '1';
+    submitBtn.style.pointerEvents = 'auto';
+  }
+}
+
+function submitWorkerAttendance() {
+  if (!currentWorker) return;
+  const dateInput = document.getElementById('w-att-date');
+  if (!dateInput) return;
+  const selectedDate = dateInput.value;
+  if (!selectedDate) {
+    showToast('⚠️ Please select a date.');
     return;
   }
-  if (!confirm('Mark your attendance for today?\n\nYour admin will review and approve it.')) return;
+
+  const isApproved = db.attendance.some(a => a.workerId === currentWorker.id && a.date === selectedDate && a.approved);
+  const isPending = db.attendance.some(a => a.workerId === currentWorker.id && a.date === selectedDate && !a.approved && a.markedBy === 'self');
+  if (isApproved || isPending) {
+    showToast('⚠️ Attendance already marked for this date.');
+    return;
+  }
+
+  const typeName = workerAttHalfDay ? 'Half Day' : 'Full Day';
+  if (!confirm(`Submit ${typeName} attendance for ${fmtDate(selectedDate)}?\n\nYour admin will review and approve it.`)) return;
+
   db.attendance.push({
     id: uid(),
     workerId: currentWorker.id,
-    date: todayStr(),
+    date: selectedDate,
     markedBy: 'self',
     approved: false,
-    halfDay: false
+    halfDay: workerAttHalfDay
   });
   saveDB();
   showToast('✅ Attendance submitted!');

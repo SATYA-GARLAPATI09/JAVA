@@ -48,22 +48,18 @@ Since SiteTrack Pro is a static HTML page, you can run it immediately without an
    Then open `http://localhost:8000` or `http://localhost:3000` in your browser.
 
 ---
-
 ## ☁️ Deployment to GitHub Pages
 
-To host this live on GitHub Pages:
+Since this folder is inside your existing `JAVA` git repository, we have already pushed the files to GitHub!
 
-1. Create a new repository on GitHub named `sitetrack-pro`.
-2. Connect your local folder to your remote repository:
-   ```bash
-   git remote add origin https://github.com/SATYA-GARLAPATI09/sitetrack-pro.git
-   git branch -M main
-   git push -u origin main
-   ```
-3. Enable GitHub Pages:
-   - Go to your repository settings on GitHub.
-   - Click **Pages** on the left menu.
-   - Under **Build and deployment**, select **Deploy from a branch**.
-   - Select the `main` branch and `/ (root)` folder.
-   - Click **Save**.
-   - Your site will be live at `https://SATYA-GARLAPATI09.github.io/sitetrack-pro/` in a few minutes!
+To make your website live on the internet, just enable GitHub Pages on that repository:
+
+1. Open your browser and go to your repository on GitHub: `https://github.com/SATYA-GARLAPATI09/JAVA`
+2. Click on the **Settings** tab (the gear icon at the top).
+3. On the left sidebar, click **Pages** (under the "Code and automation" section).
+4. Under **Build and deployment** -> **Source**, make sure **Deploy from a branch** is selected.
+5. Under **Branch**, select the **`main`** branch (or whichever branch is your default) and leave the folder as `/ (root)`.
+6. Click **Save**.
+7. In 1-2 minutes, refresh the page. You will see your live URL at the top:
+   `https://satya-garlapati09.github.io/JAVA/workers%20app/` (or `https://satya-garlapati09.github.io/JAVA/workers%20app/index.html`)
+

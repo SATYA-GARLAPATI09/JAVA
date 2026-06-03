@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#08111f">
   <title>SiteTrack Pro — Construction Worker Management</title>
   <meta name="description" content="Manage your construction site workers, daily attendance, and wages efficiently with SiteTrack Pro.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -1311,6 +1312,52 @@
     }
     .date-banner input[type="date"]:focus { box-shadow: none; }
 
+    /* Logo Pulse & Interactive UI Animations */
+    @keyframes pulseLogo {
+      0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(245,158,11,0)); }
+      50% { transform: scale(1.03); filter: drop-shadow(0 0 16px rgba(245,158,11,0.2)); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(245,158,11,0)); }
+    }
+    .pulse-logo {
+      animation: pulseLogo 3s infinite ease-in-out;
+    }
+    
+    @keyframes pageFadeIn {
+      from { opacity: 0; transform: translateY(12px); filter: blur(3px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .page.active {
+      display: flex !important;
+      animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fabFloat {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+      100% { transform: translateY(0); }
+    }
+    .fab:not(.hidden) {
+      animation: fabFloat 3s ease-in-out infinite;
+    }
+    
+    .stat-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stat-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      border-color: rgba(245,158,11,0.25);
+    }
+
+    .login-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .login-card:hover {
+      transform: translateY(-4px) scale(1.02) !important;
+      box-shadow: 0 12px 30px rgba(245,158,11,0.15) !important;
+      border-color: var(--primary) !important;
+    }
+
     /* ══════════════════════════════════════════
        PRINT
     ══════════════════════════════════════════ */
@@ -1329,9 +1376,10 @@
 ════════════════════════════════════════ -->
 <div id="page-landing" class="page active">
   <div class="landing-hero" style="margin:auto; padding:32px 20px;">
-    <div class="logo-wrap">🏗️</div>
-    <div class="site-logo">SiteTrack Pro</div>
-    <p class="site-tagline">Construction Worker & Wage Management</p>
+    <div class="logo-wrap" style="background:#fff; border:none; box-shadow:0 8px 32px rgba(0,0,0,0.2); width:auto; height:72px; padding:12px 24px; display:inline-flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+      <img src="logo.png" alt="SiteTrack Pro Logo" class="pulse-logo" style="height:100%; object-fit:contain;">
+    </div>
+    <p class="site-tagline" style="margin-top:10px;">Construction Worker & Wage Management</p>
     <div class="site-badge">
       <span>📍</span>
       <span id="landing-site-name">My Home Construction</span>
@@ -1402,7 +1450,9 @@
 <div id="page-admin" class="page">
   <div class="app-layout">
     <header class="app-header">
-      <div class="app-logo">🏗️ SiteTrack Pro</div>
+      <div class="app-logo" style="background:#fff; padding:4px 10px; border-radius:8px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+        <img src="logo.png" alt="SiteTrack Pro" style="height:20px; object-fit:contain;">
+      </div>
       <div class="app-header-right">
         <span class="header-date" id="admin-header-date"></span>
         <button class="logout-btn" onclick="logout()">Logout</button>
@@ -1610,7 +1660,9 @@
 <div id="page-worker" class="page">
   <div class="app-layout">
     <header class="app-header">
-      <div class="app-logo">🏗️ SiteTrack</div>
+      <div class="app-logo" style="background:#fff; padding:4px 10px; border-radius:8px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+        <img src="logo.png" alt="SiteTrack Pro" style="height:20px; object-fit:contain;">
+      </div>
       <div class="app-header-right">
         <button class="logout-btn" onclick="workerLogout()">Logout</button>
       </div>
@@ -1691,7 +1743,9 @@
 <div id="page-public" class="page">
   <div class="app-layout">
     <header class="app-header">
-      <div class="app-logo">🏗️ SiteTrack</div>
+      <div class="app-logo" style="background:#fff; padding:4px 10px; border-radius:8px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+        <img src="logo.png" alt="SiteTrack Pro" style="height:20px; object-fit:contain;">
+      </div>
       <div class="app-header-right">
         <button class="logout-btn" onclick="showPage('page-landing')">← Back</button>
       </div>
